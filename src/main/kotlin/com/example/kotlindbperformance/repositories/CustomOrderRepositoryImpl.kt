@@ -1,32 +1,76 @@
 package com.example.kotlindbperformance.repositories
 
 import com.example.kotlindbperformance.entities.Order
-import com.example.kotlindbperformance.entities.Product
+import io.r2dbc.spi.Connection
+import io.r2dbc.spi.ConnectionFactory
+import org.springframework.data.r2dbc.connectionfactory.ConnectionFactoryUtils
 import org.springframework.data.r2dbc.core.DatabaseClient
-import reactor.core.publisher.Flux
-import java.util.function.BiFunction
+import reactor.core.publisher.Mono
 
-class CustomOrderRepositoryImpl(private val databaseClient: DatabaseClient): CustomOrderRepository {
-
+class CustomOrderRepositoryImpl(private val databaseClient: DatabaseClient, val connectionFactory: ConnectionFactory): CustomOrderRepository {
+/*
     override fun findAll(): Flux<Order> {
-        val sql_orders = "select o.id, o.name from \"order\" o"
-        val sql_products = "select id, name, order_id from product"
+        val sql_orders = "select o.id from \"order\" o"
+        val sql_products = "select id, name from product"
 
         val orders = databaseClient
                 .execute(sql_orders)
                 .map { row ->
-                    OrderDTO(row.get("id") as Int, row.get("name") as String)
+                    OrderDTO(row.get("id") as Long)
                 }.all()
 
         val products = databaseClient
                 .execute(sql_products)
-                .map{row -> ProductDTO(row.get("id") as Int, row.get("name") as String, row.get("order_id") as Int)}
+                .map{row -> ProductDTO(row.get("id") as Long, row.get("name") as String, row.get("order_id") as Long)}
                 .all()
 
         return orders.zipWith(products.collectList()).map { tuple ->
-            Order(tuple.t1.id, tuple.t1.name, tuple.t2.filter { p -> p.orderId == tuple.t1.id }.map { p -> Product(p.id, p.name) }.toMutableSet() ) }
+            Order(tuple.t1.id, tuple.t2.filter { p -> p.orderId = tuple.t1.id }.map { p -> Product(p.id, p.name) }.toMutableSet(), 0 ) }
+
+
+
+
+        databaseClient.execute(insert_order)
+                .bind("orderId", order.id)
+                .fetch().rowsUpdated()
+                .then(databaseClient
+                        .execute(insert_user_order)
+                        .bind("userId", order.user)
+                        .bind("orderId", order.id)
+                        .fetch().rowsUpdated())
+                .block()
+
+    }
+*/
+    override fun save(order: Order) {
+
+        val insert_user_order = "insert into order_user(user_id, order_id) values(:userId, :orderId)"
+        val insert_order = "insert into \"order\"(id) values(:orderId)"
+        val insert_products_order = "insert into order_product(product_id, order_id) values(:productId, :orderId)"
+
+        val orderResult = databaseClient.execute(insert_order)
+                .bind("orderId", order.id)
+                .fetch().rowsUpdated()
+
+        val userOrderResult = databaseClient
+                .execute(insert_user_order)
+                .bind("userId", order.user)
+                .bind("orderId", order.id)
+                .fetch().rowsUpdated()
+
+        orderResult.block()
+        userOrderResult.block()
+        Mono.from(connectionFactory.create())
+            .map(Connection::createBatch).map { batch ->
+                order.products.forEach{
+                    val sql = String.format("insert into order_product(product_id, order_id) values(%s, '%s')", it, order.id)
+                    batch.add(sql)
+                }
+                batch
+            }.flatMap { batch -> Mono.from(batch.execute()) }
+            .block()
     }
 
-    data class ProductDTO(val id: Int, val name: String, val orderId: Int)
-    data class OrderDTO(val id: Int, val name: String)
+    data class ProductDTO(val id: Long, val name: String, val orderId: Long)
+    data class OrderDTO(val id: Long)
 }

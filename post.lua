@@ -1,3 +1,3 @@
 wrk.method = "POST"
-wrk.body = '{"firstKey": "somedata", "secondKey": "somedata"}'
+wrk.body = '{"userId": 2, "products": [1,2,3]}'
 wrk.headers["Content-Type"] = "application/json"
