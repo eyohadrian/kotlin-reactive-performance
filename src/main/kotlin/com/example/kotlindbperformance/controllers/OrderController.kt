@@ -1,7 +1,7 @@
 package com.example.kotlindbperformance.controllers
 
 import com.example.kotlindbperformance.entities.Order
-import com.example.kotlindbperformance.repositories.OrderRepository
+import com.example.kotlindbperformance.repositories.order.OrderRepository
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
 

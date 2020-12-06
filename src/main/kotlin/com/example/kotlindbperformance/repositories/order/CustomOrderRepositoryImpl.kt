@@ -1,9 +1,8 @@
-package com.example.kotlindbperformance.repositories
+package com.example.kotlindbperformance.repositories.order
 
 import com.example.kotlindbperformance.entities.Order
 import io.r2dbc.spi.Connection
 import io.r2dbc.spi.ConnectionFactory
-import org.springframework.data.r2dbc.connectionfactory.ConnectionFactoryUtils
 import org.springframework.data.r2dbc.core.DatabaseClient
 import reactor.core.publisher.Mono
 
@@ -42,11 +41,10 @@ class CustomOrderRepositoryImpl(private val databaseClient: DatabaseClient, val 
 
     }
 */
-    override fun save(order: Order) {
+    override fun save(order: Order)  {
 
         val insert_user_order = "insert into order_user(user_id, order_id) values(:userId, :orderId)"
         val insert_order = "insert into \"order\"(id) values(:orderId)"
-        val insert_products_order = "insert into order_product(product_id, order_id) values(:productId, :orderId)"
 
         val orderResult = databaseClient.execute(insert_order)
                 .bind("orderId", order.id)

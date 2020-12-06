@@ -1,7 +1,7 @@
 package com.example.kotlindbperformance
 
-import com.example.kotlindbperformance.repositories.OrderRepository
-import com.example.kotlindbperformance.repositories.ProductRepository
+import com.example.kotlindbperformance.repositories.order.OrderRepository
+import com.example.kotlindbperformance.repositories.product.ProductRepository
 import org.springframework.boot.CommandLineRunner
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication

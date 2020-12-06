@@ -1,4 +1,4 @@
-package com.example.kotlindbperformance.repositories
+package com.example.kotlindbperformance.repositories.order
 
 import com.example.kotlindbperformance.entities.Order
 import reactor.core.publisher.Flux
