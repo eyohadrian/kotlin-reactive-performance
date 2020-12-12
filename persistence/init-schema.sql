@@ -16,8 +16,8 @@ create table order_user(
     user_id bigint,
     order_id bigint,
     primary key (user_id, order_id),
-    constraint "user_fk" foreign key (user_id) references domain_user(id) on delete cascade,
-    constraint "order_id" foreign key (order_id) references "order"(id) on delete cascade
+    constraint "user_fk" foreign key (user_id) references domain_user(id) on delete cascade deferrable initially immediate,
+    constraint "order_id" foreign key (order_id) references "order"(id) on delete cascade deferrable initially immediate
 );
 
 drop table if exists product cascade;
@@ -32,8 +32,8 @@ create table order_product(
     order_id bigint not null ,
     product_id bigint not null,
     primary key (order_id, product_id),
-    constraint "order_fk" foreign key (order_id) references "order"(id) on delete cascade,
-    constraint "product_fk" foreign key (product_id) references product(id) on delete cascade
+    constraint "order_fk" foreign key (order_id) references "order"(id) on delete cascade deferrable initially immediate,
+    constraint "product_fk" foreign key (product_id) references product(id) on delete cascade deferrable initially immediate
 );
 
 

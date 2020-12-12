@@ -6,5 +6,5 @@ import reactor.core.publisher.Mono
 
 interface CustomOrderRepository {
     //fun findAll(): Flux<Order>
-    fun save(order: Order)
+    fun save(order: Order): Mono<Int>
 }

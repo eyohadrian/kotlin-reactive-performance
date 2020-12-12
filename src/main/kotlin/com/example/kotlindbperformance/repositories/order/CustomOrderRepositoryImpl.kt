@@ -2,11 +2,11 @@ package com.example.kotlindbperformance.repositories.order
 
 import com.example.kotlindbperformance.entities.Order
 import io.r2dbc.spi.Connection
-import io.r2dbc.spi.ConnectionFactory
 import org.springframework.data.r2dbc.core.DatabaseClient
+import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Mono
 
-class CustomOrderRepositoryImpl(private val databaseClient: DatabaseClient, val connectionFactory: ConnectionFactory): CustomOrderRepository {
+open class CustomOrderRepositoryImpl(private val databaseClient: DatabaseClient): CustomOrderRepository {
 /*
     override fun findAll(): Flux<Order> {
         val sql_orders = "select o.id from \"order\" o"
@@ -41,34 +41,24 @@ class CustomOrderRepositoryImpl(private val databaseClient: DatabaseClient, val 
 
     }
 */
-    override fun save(order: Order)  {
+    @Transactional
+    override fun save(order: Order): Mono<Int> {
 
-        val insert_user_order = "insert into order_user(user_id, order_id) values(:userId, :orderId)"
-        val insert_order = "insert into \"order\"(id) values(:orderId)"
+    return databaseClient
+        .insert()
+        .into("\"order\"")
+        .value("id", order.id)
+        .fetch()
+        .rowsUpdated()
+        .then(databaseClient.insert()
+            .into("order_user")
+            .value("user_id", order.user)
+            .value("order_id", order.id).fetch().rowsUpdated())
+        .then(databaseClient.insert()
+            .into("order_product")
+            .value("order_id", order.id)
+            .value("product_id", order.products.first())
+            .fetch().rowsUpdated())
 
-        val orderResult = databaseClient.execute(insert_order)
-                .bind("orderId", order.id)
-                .fetch().rowsUpdated()
-
-        val userOrderResult = databaseClient
-                .execute(insert_user_order)
-                .bind("userId", order.user)
-                .bind("orderId", order.id)
-                .fetch().rowsUpdated()
-
-        orderResult.block()
-        userOrderResult.block()
-        Mono.from(connectionFactory.create())
-            .map(Connection::createBatch).map { batch ->
-                order.products.forEach{
-                    val sql = String.format("insert into order_product(product_id, order_id) values(%s, '%s')", it, order.id)
-                    batch.add(sql)
-                }
-                batch
-            }.flatMap { batch -> Mono.from(batch.execute()) }
-            .block()
     }
-
-    data class ProductDTO(val id: Long, val name: String, val orderId: Long)
-    data class OrderDTO(val id: Long)
 }

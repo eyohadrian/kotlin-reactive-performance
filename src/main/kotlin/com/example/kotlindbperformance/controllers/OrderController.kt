@@ -4,6 +4,7 @@ import com.example.kotlindbperformance.entities.Order
 import com.example.kotlindbperformance.repositories.order.OrderRepository
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
 @RestController
 @RequestMapping("/orders")
@@ -13,9 +14,9 @@ class OrderController(val orderRepository: OrderRepository) {
     fun get(): Flux<Order> = orderRepository.findAll()
 
     @PostMapping("/new")
-    fun new(@RequestBody request: EntityDTO) {
+    fun new(@RequestBody request: EntityDTO): Mono<Int> {
         val order = Order(products = request.products, user = request.userId )
-        orderRepository.save(order)
+        return orderRepository.save(order)
     }
 
     @PostMapping("/test")
