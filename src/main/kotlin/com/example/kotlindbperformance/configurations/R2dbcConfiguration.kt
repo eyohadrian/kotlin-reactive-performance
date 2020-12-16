@@ -1,5 +1,8 @@
 package com.example.kotlindbperformance.configurations
 
+import io.r2dbc.pool.ConnectionPool
+import io.r2dbc.pool.ConnectionPoolConfiguration
+import io.r2dbc.pool.PoolingConnectionFactoryProvider.MAX_SIZE
 import io.r2dbc.postgresql.PostgresqlConnectionConfiguration
 import io.r2dbc.postgresql.PostgresqlConnectionFactory
 import io.r2dbc.spi.ConnectionFactory
@@ -18,13 +21,18 @@ class R2dbcConfiguration: AbstractR2dbcConfiguration() {
 
     @Bean(name = [ "SpringConnectionFactory"])
     override fun connectionFactory(): ConnectionFactory {
-        return PostgresqlConnectionFactory(PostgresqlConnectionConfiguration.builder()
-            .database("reactive_performance")
-            .host("127.0.0.1")
-            .port(5432)
-            .username("postgres")
-            .password("c0c0l0c0")
-            .build())
+        return ConnectionPool(
+            ConnectionPoolConfiguration
+                .builder(PostgresqlConnectionFactory(
+                    PostgresqlConnectionConfiguration
+                        .builder()
+                        .database("reactive_performance")
+                        .host("127.0.0.1")
+                        .port(5432)
+                        .username("postgres")
+                        .password("c0c0l0c0")
+                        .build()))
+                .build())
     }
 
     @Bean

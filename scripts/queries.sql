@@ -1,4 +1,4 @@
-select count(id) from product;
+select count(*) from order_user;
 
 
 start transaction;
