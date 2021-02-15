@@ -13,7 +13,6 @@ class KotlinReactivePerformance() {
 	@Bean
 	fun test(orderRepository: OrderRepository, productRepository: ProductRepository): CommandLineRunner {
 		return CommandLineRunner {
-			//val product = orderRepository.findAll().collectList().block()
 			print("Completed")
 		}
 	}
